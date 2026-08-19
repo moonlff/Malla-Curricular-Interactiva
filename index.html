@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Curricular - Arquitectura</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #2c3e50;
+      --primary-color: #3498db;
+      --approved-color: #2ecc71;
+      --locked-bg: #e9ecef;
+      --locked-border: #ced4da;
+      --locked-text: #6c757d;
+      --border-color: #e0e0e0;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #1a252f;
+      margin-bottom: 8px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .stat-badge {
+      background: var(--card-bg);
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .semester-col {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+    }
+
+    .semester-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid var(--primary-color);
+      color: #34495e;
+    }
+
+    .course-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      user-select: none;
+    }
+
+    .course-card:hover:not(.locked) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .course-card.approved {
+      background-color: #e8f8f0;
+      border-color: var(--approved-color);
+    }
+
+    .course-card.approved .course-code {
+      color: #27ae60;
+    }
+
+    .course-card.locked {
+      background-color: var(--locked-bg);
+      border-color: var(--locked-border);
+      color: var(--locked-text);
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
+
+    .course-code {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .course-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .course-credits {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .prereq-badge {
+      display: block;
+      font-size: 0.7rem;
+      color: #c0392b;
+      margin-top: 6px;
+      font-weight: normal;
+      background: #fadbd8;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏛️ Malla Curricular Interactiva</h1>
+    <p>Carrera de Arquitectura</p>
+    <div class="stats">
+      <div class="stat-badge">Aprobados: <span id="approved-count">0</span> / <span id="total-count">0</span></div>
+      <div class="stat-badge">Créditos: <span id="credits-count">0</span></div>
+    </div>
+  </header>
+
+  <main class="grid-container" id="grid"></main>
+
+  <script>
+    const mallaData = [
+      {
+        semestre: "Semestre 1",
+        cursos: [
+          { code: "4101056", name: "MATEMÁTICAS I", cred: 4, prereq: [] },
+          { code: "4101059", name: "EXPRESIÓN GRÁFICA I", cred: 4, prereq: [] },
+          { code: "4101072", name: "TALLER I: EL ESPACIO CORPORAL", cred: 6, prereq: [] },
+          { code: "4101212", name: "IDENTIDAD Y PERUANIDAD", cred: 3, prereq: [] },
+          { code: "4101214", name: "PROPEDÉUTICA PARA LA INVESTIGACIÓN", cred: 3, prereq: [] },
+          { code: "4101281", name: "REPRESENTACIÓN I", cred: 4, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 2",
+        cursos: [
+          { code: "4101146", name: "MATEMÁTICA", cred: 4, prereq: ["4101056"] },
+          { code: "4101217", name: "TALLER DE ARTES", cred: 1, prereq: ["4101059"] },
+          { code: "4101280", name: "PROYECTOS I: EL ESPACIO CORPORAL", cred: 4, prereq: [] },
+          { code: "4102218", name: "CÁLCULO", cred: 4, prereq: ["4101056"] },
+          { code: "4102220", name: "REPRESENTACIÓN II: EL PROCESO PROYECTUAL", cred: 5, prereq: ["4101281"] },
+          { code: "4102221", name: "TALLER DE ARGUMENTACIÓN", cred: 2, prereq: [] },
+          { code: "4102222", name: "TALLER DE DEPORTES", cred: 1, prereq: [] },
+          { code: "4102223", name: "TEORÍA E HISTORIA CRÍTICA DE LA ARQUITECTURA I", cred: 4, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 3",
+        cursos: [
+          { code: "4102219", name: "PROYECTOS II: EL ESPACIO ARQUITECTÓNICO", cred: 4, prereq: ["4101280"] },
+          { code: "4103224", name: "PROYECTOS III: ARQUITECTURA Y LUGAR", cred: 4, prereq: ["4102219"] },
+          { code: "4103226", name: "SISTEMAS ESTRUCTURALES Y TECNOLOGÍA DE MATERIALES I", cred: 5, prereq: [] },
+          { code: "4103228", name: "TEORÍA E HISTORIA CRÍTICA DE LA ARQUITECTURA II", cred: 4, prereq: ["4102223"] },
+          { code: "4103291", name: "TALLER DE LECTURA Y REDACCIÓN ACADÉMICA", cred: 2, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 4",
+        cursos: [
+          { code: "4104229", name: "PROYECTOS IV: HABITAR LA VIVIENDA", cred: 4, prereq: ["4103224"] },
+          { code: "4104230", name: "RESPONSABILIDAD SOCIAL", cred: 1, prereq: [] },
+          { code: "4104231", name: "SISTEMAS ESTRUCTURALES Y TECNOLOGÍA DE MATERIALES II", cred: 5, prereq: ["4103226"] },
+          { code: "4104235", name: "TEORÍA E HISTORIA CRÍTICA DE LA ARQUITECTURA III", cred: 4, prereq: ["4103228"] },
+          { code: "4104293", name: "INGLÉS", cred: 2, prereq: [] },
+          { code: "4104297", name: "TALLER DE COACHING Y LIDERAZGO", cred: 2, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 5",
+        cursos: [
+          { code: "4105236", name: "ACONDICIONAMIENTO AMBIENTAL I", cred: 4, prereq: ["4104235"] },
+          { code: "4105237", name: "ARQUITECTURA LEGAL I", cred: 2, prereq: [] },
+          { code: "4105238", name: "ARQUITECTURA Y MEDIO AMBIENTE", cred: 3, prereq: [] },
+          { code: "4105239", name: "ARQUITECTURA Y CINE", cred: 3, prereq: [] },
+          { code: "4105240", name: "DISEÑO DE INTERIORES", cred: 3, prereq: [] },
+          { code: "4105241", name: "FILOSOFÍA Y ÉTICA", cred: 3, prereq: [] },
+          { code: "4105242", name: "INSTALACIONES SANITARIAS", cred: 4, prereq: [] },
+          { code: "4105243", name: "PROYECTOS V: SOSTENIBILIDAD Y MATERIALIDAD", cred: 4, prereq: ["4104229"] }
+        ]
+      },
+      {
+        semestre: "Semestre 6",
+        cursos: [
+          { code: "4106025", name: "ARQUITECTURA PERUANA", cred: 3, prereq: [] },
+          { code: "4106244", name: "ACONDICIONAMIENTO AMBIENTAL II", cred: 4, prereq: ["4105236"] },
+          { code: "4106246", name: "ARQUITECTURA LEGAL II: EXPEDIENTES TÉCNICOS", cred: 2, prereq: ["4105237"] },
+          { code: "4106248", name: "INSTALACIONES ELECTROMECÁNICAS", cred: 4, prereq: [] },
+          { code: "4106249", name: "METODOLOGÍA DE LA INVESTIGACIÓN", cred: 3, prereq: ["4101214"] },
+          { code: "4106266", name: "FOTOGRAFÍA DE ARQUITECTURA", cred: 3, prereq: [] },
+          { code: "4106308", name: "ANÁLISIS CRÍTICO DE LA ARQUITECTURA I", cred: 3, prereq: [] },
+          { code: "4106314", name: "PROYECTOS VI: ARQUITECTURA Y PREEXISTENCIAS", cred: 4, prereq: ["4105243"] }
+        ]
+      },
+      {
+        semestre: "Semestre 7",
+        cursos: [
+          { code: "4107253", name: "CONSTRUCCIÓN I", cred: 5, prereq: ["4106248"] },
+          { code: "4107255", name: "PROMOCIÓN Y GESTIÓN INMOBILIARIA", cred: 3, prereq: [] },
+          { code: "4107256", name: "PROYECTOS VII: HABITAR, CULTURA Y ESPACIO PÚBLICO", cred: 4, prereq: ["4106314"] },
+          { code: "4107257", name: "TEORÍA E HISTORIA CRÍTICA DEL URBANISMO I", cred: 4, prereq: [] },
+          { code: "4107258", name: "URBANISMO E INVESTIGACIÓN", cred: 3, prereq: ["4104229"] },
+          { code: "4107315", name: "ANÁLISIS CRÍTICO DE LA ARQUITECTURA II", cred: 3, prereq: [] },
+          { code: "4107316", name: "PAISAJISMO", cred: 3, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 8",
+        cursos: [
+          { code: "4108260", name: "CONSTRUCCIÓN II", cred: 6, prereq: ["4107253"] },
+          { code: "4108261", name: "DIRECCIÓN DE PROYECTOS Y OBRAS", cred: 3, prereq: [] },
+          { code: "4108263", name: "PLANEAMIENTO URBANO TÁCTICO", cred: 3, prereq: [] },
+          { code: "4108264", name: "PROYECTOS VIII: ARQUITECTURA Y PAISAJE", cred: 4.5, prereq: ["4107256"] },
+          { code: "4108265", name: "TEORÍA E HISTORIA CRÍTICA DEL URBANISMO II", cred: 4.5, prereq: ["4107257"] },
+          { code: "4108322", name: "ANÁLISIS CRÍTICO DE LA ARQUITECTURA III", cred: 3, prereq: [] },
+          { code: "4108323", name: "CIUDADES SOSTENIBLES", cred: 3, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 9",
+        cursos: [
+          { code: "4109157", name: "ESTADÍSTICA Y PROBABILIDADES", cred: 3, prereq: [] },
+          { code: "4109254", name: "LEAN CONSTRUCTION", cred: 3, prereq: [] },
+          { code: "4109269", name: "PROYECTOS IX: ARQUITECTURA, CIUDAD Y TERRITORIO", cred: 4.5, prereq: ["4108264", "4108265"] },
+          { code: "4109270", name: "RESTAURACIÓN Y CONSERVACIÓN DEL PATRIMONIO", cred: 3, prereq: [] },
+          { code: "4109271", name: "TALLER DE INVESTIGACIÓN I", cred: 8.5, prereq: ["4106249", "4108261"] },
+          { code: "4109329", name: "ANÁLISIS CRÍTICO DE LA ARQUITECTURA IV", cred: 3, prereq: [] }
+        ]
+      },
+      {
+        semestre: "Semestre 10",
+        cursos: [
+          { code: "4110272", name: "GESTIÓN DE PROYECTOS Y EMPRENDIMIENTO", cred: 4, prereq: [] },
+          { code: "4110273", name: "PROYECTOS X: PROYECTO DE FIN DE CARRERA", cred: 8, prereq: ["4109269"] },
+          { code: "4110274", name: "TALLER DE INVESTIGACIÓN II", cred: 11.5, prereq: ["4109271"] }
+        ]
+      },
+      {
+        semestre: "Semestre 11",
+        cursos: [
+          { code: "4111338", name: "PRÁCTICAS PREPROFESIONALES", cred: 8, prereq: [] },
+          { code: "4111339", name: "TRABAJO DE INVESTIGACIÓN", cred: 12, prereq: ["4110274"] }
+        ]
+      }
+    ];
+
+    let approvedCourses = new Set();
+    try {
+      const saved = localStorage.getItem('approvedCourses');
+      if (saved) approvedCourses = new Set(JSON.parse(saved));
+    } catch(e) {}
+
+    const courseNameMap = {};
+    mallaData.forEach(sem => {
+      sem.cursos.forEach(c => {
+        courseNameMap[c.code] = c.name;
+      });
+    });
+
+    function isCourseLocked(prereqs) {
+      if (!prereqs || prereqs.length === 0) return false;
+      return !prereqs.every(reqCode => approvedCourses.has(reqCode));
+    }
+
+    function renderMalla() {
+      const grid = document.getElementById('grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      let totalCourses = 0;
+      let totalCredits = 0;
+
+      mallaData.forEach(semestre => {
+        const col = document.createElement('div');
+        col.className = 'semester-col';
+
+        const title = document.createElement('div');
+        title.className = 'semester-title';
+        title.innerText = semestre.semestre;
+        col.appendChild(title);
+
+        semestre.cursos.forEach(curso => {
+          totalCourses++;
+          const isApproved = approvedCourses.has(curso.code);
+          const isLocked = !isApproved && isCourseLocked(curso.prereq);
+
+          if (isApproved) {
+            totalCredits += curso.cred;
+          }
+
+          const card = document.createElement('div');
+          card.className = `course-card ${isApproved ? 'approved' : ''} ${isLocked ? 'locked' : ''}`;
+
+          let prereqText = '';
+          if (isLocked) {
+            const missing = curso.prereq
+              .filter(code => !approvedCourses.has(code))
+              .map(code => courseNameMap[code] || code)
+              .join(', ');
+            prereqText = `<span class="prereq-badge">🔒 Requiere: ${missing}</span>`;
+          }
+
+          card.innerHTML = `
+            <div class="course-code">
+              <span>${curso.code}</span>
+              ${isLocked ? '<span>🔒</span>' : ''}
+              ${isApproved ? '<span>✓</span>' : ''}
+            </div>
+            <div class="course-name">${curso.name}</div>
+            <div class="course-credits">${curso.cred} Créditos</div>
+            ${prereqText}
+          `;
+
+          card.addEventListener('click', () => {
+            if (isLocked) return;
+
+            if (approvedCourses.has(curso.code)) {
+              approvedCourses.delete(curso.code);
+            } else {
+              approvedCourses.add(curso.code);
+            }
+
+            try {
+              localStorage.setItem('approvedCourses', JSON.stringify(Array.from(approvedCourses)));
+            } catch(e){}
+
+            renderMalla();
+          });
+
+          col.appendChild(card);
+        });
+
+        grid.appendChild(col);
+      });
+
+      document.getElementById('approved-count').innerText = approvedCourses.size;
+      document.getElementById('total-count').innerText = totalCourses;
+      document.getElementById('credits-count').innerText = totalCredits;
+    }
+
+    window.onload = function() {
+      renderMalla();
+    };
+  </script>
+</body>
+</html>
